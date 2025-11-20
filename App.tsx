@@ -1,10 +1,10 @@
-
 import React, { useState } from 'react';
 import { Navigation } from './components/Navigation';
 import { GameCard } from './components/GameCard';
 import { Timeline } from './components/Timeline';
 import { InteractiveMap } from './components/InteractiveMap';
 import { RegistrationModal } from './components/RegistrationModal';
+import { LessonsList } from './components/LessonsList';
 import { GameModule, UserProfile } from './types';
 import { 
   Globe2, 
@@ -15,7 +15,8 @@ import {
   Users, 
   ChevronDown,
   Shield,
-  User
+  User,
+  BookOpen
 } from 'lucide-react';
 
 const games: GameModule[] = [
@@ -25,7 +26,7 @@ const games: GameModule[] = [
     description: 'Los protagonistas son ratas entrenadas para detectar minas antipersona. Un juego de precisión y cuidado.',
     mechanic: 'Detección de minas',
     educationalGoal: 'Enseñar sobre el desminado humanitario y el riesgo de explosivos.',
-    imageUrl: 'https://picsum.photos/400/300?random=1&grayscale'
+    imageUrl: 'https://image.pollinations.ai/prompt/heroic%20rat%20sniffing%20landmine%20in%20dirt%20close%20up%20cinematic?width=400&height=300&nologo=true'
   },
   {
     id: 'aid-convoy',
@@ -33,7 +34,7 @@ const games: GameModule[] = [
     description: 'Lleva un convoy de ayuda humanitaria a través de territorios peligrosos. La logística salva vidas.',
     mechanic: 'Logística y Estrategia',
     educationalGoal: 'Conceptos de diplomacia, riesgo y protección de civiles.',
-    imageUrl: 'https://picsum.photos/400/300?random=2&grayscale'
+    imageUrl: 'https://image.pollinations.ai/prompt/united%20nations%20white%20truck%20convoy%20desert%20dust%20road?width=400&height=300&nologo=true'
   },
   {
     id: 'a-bomb',
@@ -41,7 +42,7 @@ const games: GameModule[] = [
     description: 'Un juego de supervivencia contrarreloj donde el objetivo es escapar de la radiación invisible.',
     mechanic: 'Supervivencia',
     educationalGoal: 'Impacto de armas nucleares y la urgencia del desarme.',
-    imageUrl: 'https://picsum.photos/400/300?random=3&grayscale'
+    imageUrl: 'https://image.pollinations.ai/prompt/nuclear%20explosion%20mushroom%20cloud%20vintage%20photo%20scary?width=400&height=300&nologo=true'
   }
 ];
 
@@ -58,6 +59,22 @@ const App: React.FC = () => {
 
   const handleLogout = () => {
     setUser(null);
+  };
+
+  const handleLessonComplete = (lessonId: string, xpReward: number) => {
+    if (user) {
+      const currentXp = user.xp || 0;
+      const currentLessons = user.completedLessonIds || [];
+      
+      // Only award if not already completed
+      if (!currentLessons.includes(lessonId)) {
+        setUser({
+          ...user,
+          xp: currentXp + xpReward,
+          completedLessonIds: [...currentLessons, lessonId]
+        });
+      }
+    }
   };
 
   return (
@@ -150,7 +167,7 @@ const App: React.FC = () => {
             <div className="absolute -inset-4 border border-white/10 rotate-3" />
             <div className="absolute -inset-4 border border-brand-accent/20 -rotate-3" />
             <img 
-              src="https://picsum.photos/800/1000?grayscale" 
+              src="https://image.pollinations.ai/prompt/sad%20refugee%20child%20sitting%20in%20rubble%20cinematic%20lighting?width=800&height=1000&nologo=true" 
               alt="Refugee child illustration concept" 
               className="relative w-full h-auto shadow-2xl filter brightness-75 contrast-125"
             />
@@ -191,7 +208,7 @@ const App: React.FC = () => {
                    ) : (
                      <Users className="w-16 h-16 text-slate-600" />
                    )}
-                   <div className="absolute bottom-0 right-0 bg-brand-accent text-black text-xs font-bold px-2 py-1">LVL {user ? '1' : '5'}</div>
+                   <div className="absolute bottom-0 right-0 bg-brand-accent text-black text-xs font-bold px-2 py-1">LVL {user ? Math.floor(((user.xp || 0) / 100) + 1) : '1'}</div>
                 </div>
                 
                 <div className="flex-1 space-y-4 w-full">
@@ -210,14 +227,14 @@ const App: React.FC = () => {
                     </div>
                     <div>
                       <div className="text-xs text-slate-500 uppercase tracking-wider">Misiones</div>
-                      <div className="text-white font-bold">{user ? '0/50' : '12/50'} Completadas</div>
+                      <div className="text-white font-bold">{user ? user.completedLessonIds?.length || 0 : '0'}/50 Completadas</div>
                     </div>
                   </div>
 
                   <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden mt-4">
-                    <div className={`bg-brand-accent h-full ${user ? 'w-0' : 'w-1/3'}`} />
+                    <div className="bg-brand-accent h-full" style={{ width: `${user ? Math.min(((user.xp || 0) / 100) * 100, 100) : 0}%` }} />
                   </div>
-                  <p className="text-xs text-right text-brand-accent">{user ? '50' : '350'} Puntos para siguiente rango</p>
+                  <p className="text-xs text-right text-brand-accent">{user ? (100 - ((user.xp || 0) % 100)) : '100'} Puntos para siguiente rango</p>
                 </div>
               </div>
             </div>
@@ -243,14 +260,46 @@ const App: React.FC = () => {
         </div>
       </section>
 
+       {/* LESSONS SECTION */}
+      <section id="lessons" className="py-24 px-6 bg-brand-dark border-b border-white/5">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
+            <div className="max-w-2xl">
+               <div className="flex items-center gap-2 text-brand-accent mb-2">
+                  <BookOpen size={16} />
+                  <span className="uppercase tracking-widest text-sm font-bold">Archivos Históricos</span>
+               </div>
+              <h2 className="font-heading text-3xl md:text-5xl font-bold text-white">
+                Lecciones de Conflicto
+              </h2>
+              <p className="text-slate-400 mt-4">
+                Explora los archivos clasificados de los conflictos más significativos de la historia. 
+                Aprende del pasado para proteger el futuro. Gana <span className="text-brand-accent font-bold">10 XP</span> por cada lección completada.
+              </p>
+            </div>
+            {!user && (
+              <div className="text-right">
+                 <p className="text-xs text-slate-500 uppercase tracking-wider mb-2">¿Quieres guardar tu progreso?</p>
+                 <button onClick={openRegister} className="text-brand-accent border-b border-brand-accent pb-1 hover:text-white transition-colors font-bold uppercase text-sm">
+                    Regístrate ahora
+                 </button>
+              </div>
+            )}
+          </div>
+
+          <LessonsList user={user} onCompleteLesson={handleLessonComplete} />
+        </div>
+      </section>
+
+
       {/* GAMES SECTION */}
-      <section id="games" className="py-24 px-6 bg-brand-dark">
+      <section id="games" className="py-24 px-6 bg-slate-900">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
             <div className="max-w-2xl">
               <span className="text-brand-accent uppercase tracking-widest text-sm font-bold">Aprendizaje Interactivo</span>
               <h2 className="font-heading text-3xl md:text-5xl font-bold text-white mt-4">
-                Misiones Educativas
+                Simulaciones
               </h2>
               <p className="text-slate-400 mt-4">
                 Juegos diseñados con mecánicas simples pero significados profundos.

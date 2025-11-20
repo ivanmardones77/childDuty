@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { X, Shield, User, Fingerprint, CheckCircle, Loader2 } from 'lucide-react';
 import { GoogleGenAI, Modality } from "@google/genai";
@@ -80,7 +79,9 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({ isOpen, on
       nickname: formData.nickname,
       age: formData.age,
       division: formData.division,
-      avatar: generatedAvatar
+      avatar: generatedAvatar,
+      xp: 0,
+      completedLessonIds: []
     });
   };
 

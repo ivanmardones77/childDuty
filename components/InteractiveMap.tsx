@@ -1,7 +1,5 @@
-
 import React, { useEffect, useRef, useState } from 'react';
-import { createRoot } from 'react-dom/client';
-import { Maximize2, Map as MapIcon, Layers, AlertTriangle, History, Baby, Globe2 } from 'lucide-react';
+import { Maximize2, Minimize2, Map as MapIcon, Layers, AlertTriangle, History, Baby, Globe2, X } from 'lucide-react';
 
 interface ConflictLocation {
   id: number;
@@ -132,10 +130,10 @@ const ConflictPopup: React.FC<{ conflict: ConflictLocation }> = ({ conflict }) =
   const [isExpanded, setIsExpanded] = useState(false);
 
   return (
-    <div className="min-w-[260px] max-w-[300px] font-sans text-left">
+    <div className="font-sans text-left w-full">
       <div className="border-b border-white/10 pb-2 mb-2">
         <h3 className="font-bold text-brand-accent uppercase tracking-wider text-[10px] mb-1">{conflict.type}</h3>
-        <h2 className="text-base font-bold text-white font-serif leading-tight">{conflict.name}</h2>
+        <h2 className="text-lg font-bold text-white font-serif leading-tight">{conflict.name}</h2>
       </div>
       
       <p className="text-xs text-slate-300 mb-3 leading-relaxed">{conflict.description}</p>
@@ -147,28 +145,33 @@ const ConflictPopup: React.FC<{ conflict: ConflictLocation }> = ({ conflict }) =
 
       {isExpanded && (
         <div className="space-y-3 mb-3 animate-fade-in-up bg-slate-800/50 p-3 rounded border border-white/5">
+           {/* Geopolitics - Prioritized */}
+           <div>
+            <div className="flex items-center gap-2 text-blue-400 mb-1">
+              <Globe2 size={12} />
+              <span className="text-[10px] font-bold uppercase tracking-wider">Factores Geopolíticos</span>
+            </div>
+            <p className="text-[10px] text-slate-300 leading-relaxed border-l-2 border-blue-500/50 pl-2 bg-blue-500/5 p-1 rounded-r">
+              {conflict.geopoliticalFactors}
+            </p>
+          </div>
+
+          {/* Context */}
           <div>
             <div className="flex items-center gap-2 text-slate-400 mb-1">
               <History size={10} />
-              <span className="text-[9px] font-bold uppercase tracking-wider">Contexto</span>
+              <span className="text-[9px] font-bold uppercase tracking-wider">Contexto Histórico</span>
             </div>
             <p className="text-[10px] text-slate-300 leading-relaxed border-l-2 border-slate-600 pl-2">{conflict.historicalContext}</p>
           </div>
 
+          {/* Casualties */}
           <div>
             <div className="flex items-center gap-2 text-brand-accent mb-1">
               <Baby size={10} />
               <span className="text-[9px] font-bold uppercase tracking-wider">Infancia Afectada</span>
             </div>
             <p className="text-[10px] text-slate-300 leading-relaxed border-l-2 border-brand-accent pl-2">{conflict.childCasualties}</p>
-          </div>
-
-           <div>
-            <div className="flex items-center gap-2 text-blue-400 mb-1">
-              <Globe2 size={10} />
-              <span className="text-[9px] font-bold uppercase tracking-wider">Geopolítica</span>
-            </div>
-            <p className="text-[10px] text-slate-300 leading-relaxed border-l-2 border-blue-500/50 pl-2">{conflict.geopoliticalFactors}</p>
           </div>
         </div>
       )}
@@ -180,12 +183,12 @@ const ConflictPopup: React.FC<{ conflict: ConflictLocation }> = ({ conflict }) =
         {isExpanded ? (
             <>
                 <Maximize2 className="w-3 h-3 rotate-180" />
-                Minimizar Datos
+                Cerrar Informe
             </>
         ) : (
             <>
-                <Maximize2 className="w-3 h-3" />
-                Ver Informe Completo
+                <Globe2 className="w-3 h-3" />
+                Ver Factores Geopolíticos
             </>
         )}
       </button>
@@ -195,8 +198,11 @@ const ConflictPopup: React.FC<{ conflict: ConflictLocation }> = ({ conflict }) =
 
 export const InteractiveMap: React.FC = () => {
   const mapRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const leafletMap = useRef<any>(null);
   const markersRef = useRef<any[]>([]);
+  const [selectedConflict, setSelectedConflict] = useState<ConflictLocation | null>(null);
+  const [isFullScreen, setIsFullScreen] = useState(false);
 
   useEffect(() => {
     if (!mapRef.current || leafletMap.current) return;
@@ -206,10 +212,11 @@ export const InteractiveMap: React.FC = () => {
       const L = (window as any).L;
 
       const map = L.map(mapRef.current, {
-        center: [25, 20], // Centered slightly north to show more context
-        zoom: 2.5,
+        center: [20, 10], // Centered slightly north to show more context, zoom 2.2 for better initial fit
+        zoom: 2.2,
         zoomControl: false,
-        attributionControl: false
+        attributionControl: false,
+        scrollWheelZoom: true
       });
 
       L.control.zoom({ position: 'bottomright' }).addTo(map);
@@ -221,6 +228,11 @@ export const InteractiveMap: React.FC = () => {
       const overlayPane = map.createPane('darkOverlay');
       overlayPane.style.zIndex = "200";
       overlayPane.style.pointerEvents = 'none';
+
+      // Close popup when clicking on map background
+      map.on('click', () => {
+        setSelectedConflict(null);
+      });
 
       leafletMap.current = map;
     }
@@ -241,7 +253,7 @@ export const InteractiveMap: React.FC = () => {
         html: `
           <div class="relative flex items-center justify-center w-6 h-6 group cursor-pointer">
             <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-alert opacity-75"></span>
-            <span class="relative inline-flex rounded-full h-3 w-3 bg-red-600 border border-white/80 shadow-[0_0_10px_rgba(220,38,38,0.8)]"></span>
+            <span class="relative inline-flex rounded-full h-3 w-3 bg-brand-alert border border-white/80 shadow-[0_0_10px_rgba(220,38,38,0.8)]"></span>
           </div>
         `,
         iconSize: [24, 24],
@@ -250,19 +262,12 @@ export const InteractiveMap: React.FC = () => {
 
       const marker = L.marker(conflict.coords, { icon: pulsingIcon }).addTo(map);
       
-      // Create a container for the React Popup
-      const popupNode = document.createElement('div');
-      const root = createRoot(popupNode);
-      
-      // Render the React component into the DOM node
-      root.render(<ConflictPopup conflict={conflict} />);
-      
-      // Bind the DOM node to the Leaflet popup
-      marker.bindPopup(popupNode, {
-        className: 'custom-leaflet-popup',
-        minWidth: 280,
-        maxWidth: 320,
-        closeButton: false // We can use our own or just click outside
+      // Handle click to show fixed popup state
+      marker.on('click', (e: any) => {
+        L.DomEvent.stopPropagation(e); // Stop event from hitting the map click listener
+        setSelectedConflict(conflict);
+        // Center map on the conflict for better visibility
+        map.flyTo(conflict.coords, 5, { duration: 2.0 });
       });
 
       markersRef.current.push(marker);
@@ -270,8 +275,34 @@ export const InteractiveMap: React.FC = () => {
 
   }, []);
 
+  // Handle Full Screen Changes
+  useEffect(() => {
+    const handleFullScreenChange = () => {
+      setIsFullScreen(!!document.fullscreenElement);
+      // Force Leaflet to invalidate size after transition to ensure tiles fill the screen
+      setTimeout(() => {
+        leafletMap.current?.invalidateSize();
+      }, 200);
+    };
+
+    document.addEventListener('fullscreenchange', handleFullScreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullScreenChange);
+  }, []);
+
+  const toggleFullScreen = () => {
+    if (!document.fullscreenElement) {
+      containerRef.current?.requestFullscreen().catch(err => {
+        console.error(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
+      });
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      }
+    }
+  };
+
   return (
-    <div className="relative h-[600px] w-full rounded-sm overflow-hidden border border-white/10 group shadow-2xl">
+    <div ref={containerRef} className="relative h-[600px] w-full rounded-sm overflow-hidden border border-white/10 group shadow-2xl bg-slate-900">
       <div ref={mapRef} className="h-full w-full z-0 bg-slate-900" />
 
       {/* Texture Overlay */}
@@ -301,6 +332,23 @@ export const InteractiveMap: React.FC = () => {
         </div>
       </div>
 
+      {/* Fixed Popup HUD */}
+      {selectedConflict && (
+        <div className="absolute top-24 right-6 z-[600] w-[340px] max-h-[70vh] overflow-y-auto custom-scrollbar bg-slate-900/95 backdrop-blur-md border border-white/20 shadow-2xl animate-fade-in-up rounded-sm">
+          <div className="sticky top-0 right-0 flex justify-end p-2 bg-slate-900/90 backdrop-blur z-10">
+            <button 
+              onClick={() => setSelectedConflict(null)}
+              className="text-slate-400 hover:text-white transition-colors p-1 hover:bg-white/10 rounded-full"
+            >
+              <X size={20} />
+            </button>
+          </div>
+          <div className="px-6 pb-6 pt-0">
+            <ConflictPopup conflict={selectedConflict} />
+          </div>
+        </div>
+      )}
+
       {/* HUD Footer */}
       <div className="absolute bottom-0 left-0 right-0 p-6 z-[500] flex justify-between items-end pointer-events-none">
         <div className="pointer-events-auto hidden md:block">
@@ -310,9 +358,12 @@ export const InteractiveMap: React.FC = () => {
                 <span>SAT: SENTINEL-2</span>
             </div>
         </div>
-        <button className="pointer-events-auto bg-white/5 backdrop-blur text-white border border-white/10 px-4 py-2 text-xs font-bold uppercase tracking-widest hover:bg-brand-accent hover:text-brand-dark transition-all shadow-lg flex items-center gap-2">
-          <Maximize2 size={14} />
-          <span>Pantalla Completa</span>
+        <button 
+          onClick={toggleFullScreen}
+          className="pointer-events-auto bg-white/5 backdrop-blur text-white border border-white/10 px-4 py-2 text-xs font-bold uppercase tracking-widest hover:bg-brand-accent hover:text-brand-dark transition-all shadow-lg flex items-center gap-2"
+        >
+          {isFullScreen ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
+          <span>{isFullScreen ? 'Salir' : 'Pantalla Completa'}</span>
         </button>
       </div>
     </div>

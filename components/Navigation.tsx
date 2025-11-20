@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, X, Shield, User, ChevronDown, LogOut, LayoutDashboard } from 'lucide-react';
+import { Menu, X, Shield, User, ChevronDown, LogOut, LayoutDashboard, BookOpen } from 'lucide-react';
 import { NavItem, UserProfile } from '../types';
 
 const navItems: NavItem[] = [
   { label: 'Misión', href: '#mission' },
   { label: 'Cuerpo de Paz', href: '#peace-corps' },
+  { label: 'Lecciones', href: '#lessons' },
   { label: 'Juegos', href: '#games' },
   { label: 'Datos', href: '#data' },
   { label: 'Mapa', href: '#map' },
@@ -65,13 +66,13 @@ export const Navigation: React.FC<NavigationProps> = ({ onJoinClick, user, onLog
         </a>
 
         {/* Desktop Nav */}
-        <div className="hidden md:flex items-center gap-8">
+        <div className="hidden lg:flex items-center gap-6 xl:gap-8">
           {navItems.map((item) => (
             <a
               key={item.label}
               href={item.href}
               onClick={(e) => handleNavClick(e, item.href)}
-              className="text-sm uppercase tracking-widest text-slate-300 hover:text-brand-accent transition-colors"
+              className="text-xs xl:text-sm uppercase tracking-widest text-slate-300 hover:text-brand-accent transition-colors"
             >
               {item.label}
             </a>
@@ -95,15 +96,25 @@ export const Navigation: React.FC<NavigationProps> = ({ onJoinClick, user, onLog
               </div>
 
               {/* Dropdown Menu */}
-              <div className="absolute top-full right-0 mt-2 w-56 bg-brand-charcoal border border-white/10 shadow-2xl rounded-sm opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform translate-y-2 group-hover:translate-y-0">
-                <div className="p-4 border-b border-white/5">
-                   <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">Puntos de Misión</p>
-                   <p className="text-xl font-heading font-bold text-brand-accent">350 XP</p>
+              <div className="absolute top-full right-0 mt-2 w-64 bg-brand-charcoal border border-white/10 shadow-2xl rounded-sm opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform translate-y-2 group-hover:translate-y-0">
+                <div className="p-4 border-b border-white/5 bg-slate-900/50">
+                   <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">Experiencia de Misión</p>
+                   <div className="flex justify-between items-end">
+                      <p className="text-2xl font-heading font-bold text-brand-accent">{user.xp || 0} XP</p>
+                      <p className="text-xs text-slate-400 mb-1">{user.completedLessonIds?.length || 0} Lecciones</p>
+                   </div>
+                   <div className="w-full bg-slate-700 h-1.5 rounded-full mt-2 overflow-hidden">
+                      <div className="bg-brand-accent h-full" style={{ width: `${Math.min(((user.xp || 0) / 100) * 100, 100)}%` }}></div>
+                   </div>
                 </div>
                 <div className="py-2">
                   <button className="w-full px-4 py-2 text-left text-xs uppercase tracking-wider text-slate-300 hover:bg-white/5 hover:text-white flex items-center gap-2">
                     <LayoutDashboard className="w-4 h-4" />
                     Panel de Misiones
+                  </button>
+                  <button className="w-full px-4 py-2 text-left text-xs uppercase tracking-wider text-slate-300 hover:bg-white/5 hover:text-white flex items-center gap-2">
+                    <BookOpen className="w-4 h-4" />
+                    Mis Lecciones
                   </button>
                   <button className="w-full px-4 py-2 text-left text-xs uppercase tracking-wider text-slate-300 hover:bg-white/5 hover:text-white flex items-center gap-2">
                     <Shield className="w-4 h-4" />
@@ -134,7 +145,7 @@ export const Navigation: React.FC<NavigationProps> = ({ onJoinClick, user, onLog
 
         {/* Mobile Toggle */}
         <button
-          className="md:hidden text-white"
+          className="lg:hidden text-white"
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
         >
           {isMobileMenuOpen ? <X /> : <Menu />}
@@ -143,13 +154,13 @@ export const Navigation: React.FC<NavigationProps> = ({ onJoinClick, user, onLog
 
       {/* Mobile Menu */}
       {isMobileMenuOpen && (
-        <div className="absolute top-full left-0 right-0 bg-brand-dark border-b border-white/10 p-6 md:hidden flex flex-col gap-4 shadow-2xl">
+        <div className="absolute top-full left-0 right-0 bg-brand-dark border-b border-white/10 p-6 lg:hidden flex flex-col gap-4 shadow-2xl h-screen overflow-y-auto">
           {navItems.map((item) => (
             <a
               key={item.label}
               href={item.href}
               onClick={(e) => handleNavClick(e, item.href)}
-              className="text-slate-300 hover:text-brand-accent py-2 border-b border-white/5"
+              className="text-slate-300 hover:text-brand-accent py-3 border-b border-white/5 text-sm tracking-widest uppercase"
             >
               {item.label}
             </a>
@@ -163,6 +174,7 @@ export const Navigation: React.FC<NavigationProps> = ({ onJoinClick, user, onLog
                   <div>
                     <p className="text-brand-accent text-xs font-bold uppercase">{user.division}</p>
                     <p className="text-white font-bold uppercase">{user.nickname}</p>
+                    <p className="text-xs text-slate-400 mt-1">{user.xp || 0} XP</p>
                   </div>
                </div>
                <button onClick={() => setIsMobileMenuOpen(false)} className="text-slate-300 text-sm uppercase tracking-wider block py-2">Mi Panel</button>
@@ -172,7 +184,7 @@ export const Navigation: React.FC<NavigationProps> = ({ onJoinClick, user, onLog
             <a
               href="#peace-corps"
               onClick={handleJoin}
-              className="text-brand-accent font-bold py-2"
+              className="text-brand-accent font-bold py-4 text-center border border-brand-accent mt-4"
             >
               UNIRSE AL CUERPO DE PAZ
             </a>

@@ -14,7 +14,10 @@ export const GameCard: React.FC<GameCardProps> = ({ game }) => {
         <img 
           src={game.imageUrl} 
           alt={game.title} 
-          className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700 filter grayscale group-hover:grayscale-0" 
+          className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700 filter grayscale group-hover:grayscale-0"
+          onError={(e) => {
+             (e.target as HTMLImageElement).src = 'https://placehold.co/400x300/1e293b/FFF?text=No+Image';
+          }} 
         />
       </div>
       
